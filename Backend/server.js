@@ -1,9 +1,9 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import authRoutes from './src/routes/authRoutes.js';
-import healthRoutes from './src/routes/healthRoutes.js';
-import { connectDatabase, disconnectDatabase } from './src/config/database.js';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import authRoutes from "./src/routes/authRoutes.js";
+import healthRoutes from "./src/routes/healthRoutes.js";
+import { connectDatabase, disconnectDatabase } from "./src/config/database.js";
 
 dotenv.config();
 
@@ -11,44 +11,49 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // CORS configuration for frontend
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || process.env.FRONTEND_URL_2,
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
 // Welcome route
-app.get('/', (req, res) => {
-  res.json({ 
+app.get("/", (req, res) => {
+  res.json({
     success: true,
-    message: 'Backend is working!',
+    message: "Backend is working!",
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: "1.0.0",
   });
 });
 
 // Routes
-app.use('/api/health', healthRoutes);
-app.use('/api/auth', authRoutes);
+app.use("/api/health", healthRoutes);
+app.use("/api/auth", authRoutes);
 
 // Global error handler
 app.use((error, req, res, next) => {
-  console.error('Global error:', error);
+  console.error("Global error:", error);
   res.status(error.status || 500).json({
     success: false,
-    message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    message:
+      process.env.NODE_ENV === "development"
+        ? error.message
+        : "Internal server error",
   });
 });
 
 const startServer = async () => {
   try {
     await connectDatabase();
-    
+
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
       console.log(`🗄️ Database connected successfully`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
       console.log(`📋 API Routes available:`);
       console.log(`\n🔓 Public Routes:`);
       console.log(`   GET  http://localhost:${PORT}/`);
@@ -63,23 +68,25 @@ const startServer = async () => {
       console.log(`   PUT  http://localhost:${PORT}/api/auth/profile/password`);
       console.log(`   PUT  http://localhost:${PORT}/api/auth/profile/avatar`);
       console.log(`   DEL  http://localhost:${PORT}/api/auth/profile/avatar`);
-      console.log(`\n💡 Use Authorization: Bearer <token> for protected routes`);
+      console.log(
+        `\n💡 Use Authorization: Bearer <token> for protected routes`
+      );
     });
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
+    console.error("❌ Failed to start server:", error);
     process.exit(1);
   }
 };
 
 // Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully');
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM received, shutting down gracefully");
   await disconnectDatabase();
   process.exit(0);
 });
 
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully');
+process.on("SIGINT", async () => {
+  console.log("SIGINT received, shutting down gracefully");
   await disconnectDatabase();
   process.exit(0);
 });
